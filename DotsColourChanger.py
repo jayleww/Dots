@@ -1,4 +1,4 @@
-import pygame, math, sys, random
+import pygame, math, sys, random, time
 from pygame.locals import *
 
 pygame.init()
@@ -31,6 +31,14 @@ class Player(pygame.sprite.Sprite):
             self.rect.move_ip(0,2)
 
     def update(self, surface):
+        if self.rect.left <= 0:
+            self.rect.left = 0
+        if self.rect.right >= width:
+            self.rect.right = width
+        if self.rect.top <= 0:
+            self.rect.top = 0
+        if self.rect.bottom >= height:
+            self.rect.bottom = height
         pygame.draw.rect(screen, self.colour, self.rect)
 
 
@@ -38,8 +46,8 @@ class Enemy(pygame.sprite.Sprite):
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        enemyx = random.randint(0,width)
-        enemyy = random.randint(0,height)
+        enemyx = random.randint(10,width-10)
+        enemyy = random.randint(10,height-10)
         self.enemyhealth = random.randint(5,205)
         self.enemycolour = 255 - self.enemyhealth
         self.rect = pygame.draw.rect(screen, (self.enemycolour,0,0), ((enemyx, enemyy),(10,10)))
@@ -58,6 +66,7 @@ expover = 0
 enemydeft = 0
 running = 1
 exitcode = 0
+#starttime = time.time()
 while running:
     screen.fill(0)
     for event in pygame.event.get():
@@ -78,12 +87,17 @@ while running:
             player.colour = (rcolourmod,gcolourmod,255)
         if enemydeft > 50:
             running = 0
-            
+            exitcode = 1
         enemy = Enemy()
+    #playtime = time.time() - starttime
     font = pygame.font.Font(None,24)
     currentcolour = font.render(str(player.colour), True, (255,255,255))
     textRect = currentcolour.get_rect()
-    textRect.topright = [635,5]
+    textRect.topright = [width-10,5]
+    timedisplay = font.render(str((pygame.time.get_ticks())/60000)+":"+str((pygame.time.get_ticks())/1000%60), True, (255,255,255))
+    timerRect = timedisplay.get_rect()
+    timerRect.topright = [35,5]
+    screen.blit(timedisplay,timerRect)
     screen.blit(currentcolour,textRect)
     
     player.handle_keys()            
@@ -92,13 +106,26 @@ while running:
     pygame.display.update()
 
 
-if exitcode == 0:
+if exitcode == 1:
+    #endtime = time.time() - starttime
     pygame.font.init()
-    text = font.render("Enemies eaten: "+str(enemydeft), True, (0,255,0))
+    font = pygame.font.Font(None,24)
+    text = font.render("Enemies eaten: "+str(enemydeft), True, (255,255,255))
     textRect = text.get_rect()
     textRect.centerx = screen.get_rect().centerx
-    textRect.centery = screen.get_rect().centery + 24
+    textRect.centery = screen.get_rect().centery+24
     screen.blit(text,textRect)
+    pygame.display.update()
+    
+while 1:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit(0)
+        if event.type == pygame.KEYDOWN:
+            if event.key == K_ESCAPE:
+                pygame.quit()
+                exit(0)
     
     
     
